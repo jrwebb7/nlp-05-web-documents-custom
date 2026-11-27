@@ -105,6 +105,23 @@ From a VS Code terminal in the project root:
 uv run python -m nlp.pipeline_web_html
 ```
 
+## Run the Custom Application
+
+From the project root, run the original-paper experiment and the custom pipeline,
+then build the comparison chart.
+
+```bash
+uv sync --locked
+uv run python -m nlp.pipeline_web_html_custom --experiment
+uv run python -m nlp.pipeline_web_html_custom
+uv run python -m nlp.plot_abstract_comparison
+```
+
+The custom run analyzes [Attention Is All You Need](https://arxiv.org/abs/1706.03762).
+The raw HTML and full CSVs are written locally under `data/generated/`.
+The [project report](https://jrwebb7.github.io/nlp-05-web-documents-custom/)
+discusses the comparison and links to the results CSV.
+
 ## Results
 
 The pipeline retrieves an HTML document,

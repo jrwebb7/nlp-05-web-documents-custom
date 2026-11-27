@@ -83,7 +83,7 @@ If I add an abstract sentence count to the transform stage, I expect the same ro
 original fields, plus one integer column. The new calculation can use the abstract text
 that the example already extracts.
 
-I ran `uv run python -m nlp.pipeline_web_html_custom` on the same arXiv page.
+I ran `uv run python -m nlp.pipeline_web_html_custom --experiment` on the same arXiv page.
 The extra column counts nonempty spans separated by a period, question mark, or
 exclamation point followed by whitespace. A decimal point within a number stays
 inside the same span. Blank text and the example's `unknown` value produce zero.
@@ -91,6 +91,30 @@ inside the same span. Blank text and the example's `unknown` value produce zero.
 The saved CSV had **one row and nine columns**. The new
 `abstract_sentence_count` was **9**. I compared all eight original fields with
 the baseline CSV and found the values identical.
+
+## Custom application
+
+I used [Attention Is All You Need](https://arxiv.org/abs/1706.03762) to check
+whether the same pipeline could extract metadata from a different arXiv abstract
+page. The HTML kept the expected elements for the title, authors, abstract,
+subjects, and submission date. The new source and output filenames are in
+`src/nlp/config_custom.py`.
+
+The custom run saved the source HTML and a one-row CSV in `data/generated/`.
+I confirmed that the CSV listed arXiv ID `1706.03762`, the Computation and
+Language subject, eight authors, and the new sentence count. I generated the
+chart and [comparison CSV](data/abstract-comparison.csv) from the two saved CSVs.
+
+| Paper | Authors | Abstract words | Abstract sentences | Words per sentence |
+| --- | ---: | ---: | ---: | ---: |
+| Agents of Chaos | 38 | 177 | 9 | 19.7 |
+| Attention Is All You Need | 8 | 166 | 7 | 23.7 |
+
+![Horizontal bars show nine sentences for Agents of Chaos and seven for Attention Is All You Need.](images/abstract-sentence-counts.png)
+
+The selected abstract used fewer words and sentences and averaged about four
+more words per sentence. Two papers provide a worked comparison. A larger
+sample would be needed to study patterns across arXiv abstracts.
 
 ## Interpretation
 
