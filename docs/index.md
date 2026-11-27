@@ -1,109 +1,67 @@
-# Web Mining and Applied NLP Project Report
+# Comparing two arXiv abstracts
 
-Web Mining and Applied NLP | Project 05 | Example Report
+**Author** `jrwebb7` · 2026-11
 
-## Overview
+Can the course pipeline extract metadata from a different arXiv abstract page?
+How does the selected paper's abstract compare with the example in words and
+sentences?
 
-This project introduces web document acquisition
-and structured information extraction from HTML.
+## Data
 
-The objective is to retrieve an HTML document,
-validate its structure,
-extract meaningful text and metadata,
-and persist the results for analysis.
+I used the public arXiv abstract pages for *Agents of Chaos* (2602.20021)
+and *Attention Is All You Need* (1706.03762), retrieved in November 2026.
+The first paper is the original example. The second is the selected source
+for the custom application. [Example source](https://arxiv.org/abs/2602.20021)
+[Selected source](https://arxiv.org/abs/1706.03762)
 
-The project extends the EVTL architecture
-introduced in Module 4
-from structured JSON API responses
-to semi-structured HTML documents.
+## Techniques and verification
 
-## Tools and Methods
+1. **Extract.** Requests retrieves each HTML page and saves the response locally.
+2. **Validate.** BeautifulSoup checks for the required elements. The selectors
+   `h1.title`, `div.authors`, and `blockquote.abstract` identify the paper's
+   title, individual author links, and abstract. The pipeline also checks
+   `div.subheader` and `div.dateline` for subject and submission information.
+3. **Transform.** The example transform cleans the text, builds author names
+   from their links, and reads the arXiv ID from the canonical URL. pandas
+   creates one row per run. The custom transform adds
+   `abstract_sentence_count` to the existing metadata, author count, and
+   whitespace-based word count.
+4. **Load.** pandas writes the row to a CSV. Matplotlib builds the chart from
+   the two saved CSVs.
 
-The project uses:
-
-- Python for pipeline orchestration and processing.
-- Requests for retrieving HTML documents.
-- BeautifulSoup for parsing and inspecting HTML.
-- HTML selectors for locating document content.
-- Validation checks for confirming required elements.
-- Pandas for structured data transformation.
-- CSV for persistent output.
-- Logging for execution records.
-- Ruff, ty, and pytest for code verification.
-- Zensical and GitHub Pages for published documentation.
-
-The example retrieves an academic paper's
-abstract page from arXiv.
-
-The pipeline implements four stages:
-
-- **Extract** - retrieve HTML and preserve the source document.
-- **Validate** - verify that required document elements exist.
-- **Transform** - extract metadata and calculate derived fields.
-- **Load** - save the structured results to a CSV file.
-
-The Transform stage extracts fields including
-the paper title, authors, abstract,
-subject categories, and submission information.
-
-It also calculates abstract word count
-and author count.
-
-## Verification
-
-A successful execution displays:
-
-    Pipeline executed successfully!
-
-The pipeline records execution details in a project log.
-
-The following artifacts are created:
-
-- `data/raw/case_raw.html` - original HTML document.
-- `data/processed/case_processed.csv` - extracted and transformed data.
-
-These results demonstrate that the pipeline can
-acquire, validate, extract, and persist
-information from an HTML document.
-
-Automated tests provide additional verification
-of the pipeline's expected behavior.
-
-### Original run
-
-I ran `uv run python -m nlp.pipeline_web_html` from the repository root.
-The pipeline validated the HTML for [Agents of Chaos](https://arxiv.org/abs/2602.20021)
-and finished with `Pipeline executed successfully!`.
-It saved the raw HTML and a CSV with one row and eight columns.
-The CSV reported **38 authors** and **177 abstract words**.
+I ran the original pipeline with `uv run python -m nlp.pipeline_web_html`.
+It validated the *Agents of Chaos* page and saved the raw HTML and a CSV with
+one row and eight columns. The output reported 38 authors and 177 abstract
+words. [Original example HTML](https://github.com/jrwebb7/nlp-05-web-documents-custom/blob/main/data/raw/case_raw.html)
+[Original example CSV](https://github.com/jrwebb7/nlp-05-web-documents-custom/blob/main/data/processed/case_processed.csv)
 
 ## Sentence-count experiment
 
-If I add an abstract sentence count to the transform stage, I expect the same row and eight
-original fields, plus one integer column. The new calculation can use the abstract text
-that the example already extracts.
+I predicted that adding a sentence count would produce one extra integer column
+while preserving the original eight fields. The change uses text the pipeline
+already extracts, so I could test it on the same paper.
 
-I ran `uv run python -m nlp.pipeline_web_html_custom --experiment` on the same arXiv page.
-The extra column counts nonempty spans separated by a period, question mark, or
-exclamation point followed by whitespace. A decimal point within a number stays
-inside the same span. Blank text and the example's `unknown` value produce zero.
+The custom transform splits the cleaned abstract after a period, question mark,
+or exclamation point followed by whitespace. It counts the resulting text spans.
+A decimal point within a number stays inside its span. Blank or `unknown` text
+counts as zero.
 
-The saved CSV had **one row and nine columns**. The new
-`abstract_sentence_count` was **9**. I compared all eight original fields with
-the baseline CSV and found the values identical.
+I ran the experiment with `uv run python -m nlp.pipeline_web_html_custom --experiment`.
+The saved CSV contained one row and nine columns. All eight original fields
+matched the baseline CSV, and the new `abstract_sentence_count` was **9**.
 
 ## Custom application
 
-I used [Attention Is All You Need](https://arxiv.org/abs/1706.03762) to check
-whether the same pipeline could extract metadata from a different arXiv abstract
-page. The HTML kept the expected elements for the title, authors, abstract,
-subjects, and submission date. The new source and output filenames are in
-`src/nlp/config_custom.py`.
+The custom configuration points to *Attention Is All You Need* and uses separate
+output filenames. I ran `uv run python -m nlp.pipeline_web_html_custom`, confirmed
+that all five required HTML elements were present, and checked that the CSV
+contained the expected arXiv ID, title, subject, and eight authors.
 
-The custom run saved the source HTML and a one-row CSV in `data/generated/`.
-I confirmed that the CSV listed arXiv ID `1706.03762`, the Computation and
-Language subject, eight authors, and the new sentence count. I generated the
-chart and [comparison CSV](data/abstract-comparison.csv) from the two saved CSVs.
+The full HTML and CSV are saved locally under `data/generated/raw/` and
+`data/generated/processed/`. The [comparison CSV](data/abstract-comparison.csv)
+contains the reported metrics. [Run instructions](https://github.com/jrwebb7/nlp-05-web-documents-custom#run-the-project)
+
+## Results
 
 | Paper | Authors | Abstract words | Abstract sentences | Words per sentence |
 | --- | ---: | ---: | ---: | ---: |
@@ -112,44 +70,28 @@ chart and [comparison CSV](data/abstract-comparison.csv) from the two saved CSVs
 
 ![Horizontal bars show nine sentences for Agents of Chaos and seven for Attention Is All You Need.](images/abstract-sentence-counts.png)
 
-The selected abstract used fewer words and sentences and averaged about four
-more words per sentence. Two papers provide a worked comparison. A larger
-sample would be needed to study patterns across arXiv abstracts.
+Words per sentence is the abstract word count divided by the sentence count,
+rounded to one decimal place.
 
 ## Interpretation
 
-HTML documents are primarily designed
-for presentation in web browsers.
+The two abstracts differed by 11 words and two sentences. The *Attention Is All
+You Need* abstract averaged about four more words per sentence. The sentence
+count adds information about how the text is organized even when word totals
+are close.
 
-Extracting structured information requires
-understanding the document's elements,
-attributes, and organization.
+## Limitations and next steps
 
-Changes in page structure can affect
-validation and extraction results.
+This comparison uses two papers. A broader sample across arXiv categories would
+help show how much sentence length varies. The punctuation rule can split some
+abbreviations incorrectly, and the HTML selectors depend on arXiv's page
+structure. I would hand-check a sample of sentence boundaries and compare the
+results with a sentence tokenizer before using the metric on a larger dataset.
 
-Explicit validation and transformation stages
-help identify these problems
-and make web mining workflows more reproducible.
+## Project links
 
-The resulting structured text and metadata
-provide inputs for subsequent NLP analysis.
-
-## Documentation Index
-
-- **Home** - this landing page
-- [**Project Instructions**](project-instructions.md)
-- [**Glossary**](glossary.md)
-
-## Project Links
-
-- [GitHub Repository](https://github.com/jrwebb7/nlp-05-web-documents-custom)
-- [Example Pipeline](https://github.com/jrwebb7/nlp-05-web-documents-custom/blob/main/src/nlp/pipeline_web_html.py)
-- [Example Configuration](https://github.com/jrwebb7/nlp-05-web-documents-custom/blob/main/src/nlp/config.py)
-- [Pipeline Stages](https://github.com/jrwebb7/nlp-05-web-documents-custom/tree/main/src/nlp)
-
-## Project Resources
-
-- [Project Instructions](project-instructions.md)
-- [Professional Python Guide](https://denisecase.github.io/pro-analytics-02/)
-- [Professional Python Project Explainer](https://pup-pack.github.io/professional-python-project-explainer/)
+- [Custom GitHub repository](https://github.com/jrwebb7/nlp-05-web-documents-custom)
+- [Course example](https://github.com/denisecase/nlp-05-web-documents)
+- [Project instructions](project-instructions.md)
+- [Glossary](glossary.md)
+- [Professional Python Workflow Guide](https://denisecase.github.io/pro-analytics-02/)
