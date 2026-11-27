@@ -365,5 +365,8 @@ lake-packages/
 # NOTE: These entries are harmless in repositories that do not generate them.
 docs/assets/data/view-analytics.json
 docs/assets/data/guide-context.json
+
+# Full HTML and CSV files from the custom pipeline
+/data/generated/
 # marimo WASM export; built at deploy time, not committed
 docs/app/

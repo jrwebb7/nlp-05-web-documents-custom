@@ -77,11 +77,20 @@ and finished with `Pipeline executed successfully!`.
 It saved the raw HTML and a CSV with one row and eight columns.
 The CSV reported **38 authors** and **177 abstract words**.
 
-### Sentence-count prediction
+## Sentence-count experiment
 
 If I add an abstract sentence count to the transform stage, I expect the same row and eight
 original fields, plus one integer column. The new calculation can use the abstract text
 that the example already extracts.
+
+I ran `uv run python -m nlp.pipeline_web_html_custom` on the same arXiv page.
+The extra column counts nonempty spans separated by a period, question mark, or
+exclamation point followed by whitespace. A decimal point within a number stays
+inside the same span. Blank text and the example's `unknown` value produce zero.
+
+The saved CSV had **one row and nine columns**. The new
+`abstract_sentence_count` was **9**. I compared all eight original fields with
+the baseline CSV and found the values identical.
 
 ## Interpretation
 
