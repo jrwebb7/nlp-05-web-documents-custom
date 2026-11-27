@@ -45,6 +45,7 @@ on:
   workflow_dispatch: # WHY: Allow manual trigger from Actions tab.
 
 permissions:
+  actions: read # Check that the uploaded Pages artifact is visible before deployment.
   contents: read # WHY: Needed to checkout code.
   pages: write # WHY: Required to deploy to GitHub Pages.
   id-token: write # WHY: Required by deploy-pages for OIDC authentication.
@@ -56,6 +57,7 @@ concurrency:
   # OBS: Do not cancel an in-progress Pages deployment with another deployment.
 
 env:
+  PAGES_ARTIFACT_NAME: github-pages-${{ github.run_attempt }}
   PYTHONUNBUFFERED: "1" # WHY: Real-time log output in CI.
   PYTHONIOENCODING: "utf-8" # WHY: Consistent encoding across platforms.
   UV_FROZEN: "1" # WHY: Deployment MUST use uv.lock without updating it.
@@ -136,12 +138,29 @@ jobs:
       - name: D3) Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
+          name: ${{ env.PAGES_ARTIFACT_NAME }}
           path: site
         # WHY: Packages the built static site for the deploy-pages action.
         # OBS: path must match the output directory verified in D2.
 
-      - name: D4) Deploy to GitHub Pages
+      - name: D4) Wait for Pages artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          endpoint="repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=$PAGES_ARTIFACT_NAME"
+          for attempt in {1..10}; do
+            if count="$(gh api "$endpoint" --jq '[.artifacts[] | select(.expired == false)] | length')" && [ "$count" = 1 ]; then
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::Expected one active Pages artifact named $PAGES_ARTIFACT_NAME after upload."
+          exit 1
+
+      - name: D5) Deploy to GitHub Pages
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+        with:
+          artifact_name: ${{ env.PAGES_ARTIFACT_NAME }}
         # WHY: Publishes the uploaded artifact to GitHub Pages.
         # OBS: Requires pages: write and id-token: write permissions (set above).
         # OBS: The deployed URL is shown in the Actions log after this step completes.
