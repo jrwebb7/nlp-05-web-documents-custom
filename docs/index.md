@@ -69,6 +69,20 @@ information from an HTML document.
 Automated tests provide additional verification
 of the pipeline's expected behavior.
 
+### Original run
+
+I ran `uv run python -m nlp.pipeline_web_html` from the repository root.
+The pipeline validated the HTML for [Agents of Chaos](https://arxiv.org/abs/2602.20021)
+and finished with `Pipeline executed successfully!`.
+It saved the raw HTML and a CSV with one row and eight columns.
+The CSV reported **38 authors** and **177 abstract words**.
+
+### Sentence-count prediction
+
+If I add an abstract sentence count to the transform stage, I expect the same row and eight
+original fields, plus one integer column. The new calculation can use the abstract text
+that the example already extracts.
+
 ## Interpretation
 
 HTML documents are primarily designed
