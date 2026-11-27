@@ -1,3 +1,4 @@
+# Customized by jrwebb7 (2026-11).
 """src/nlp/config.py - Module Configuration.
 
 (MODIFY YOUR VERSION OF THIS FILE)

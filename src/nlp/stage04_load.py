@@ -1,3 +1,4 @@
+# Customized by jrwebb7 (2026-11).
 """src/nlp/stage04_load.py.
 
 NO EDITS REQUIRED IN THIS FILE (if paths have not changed.)

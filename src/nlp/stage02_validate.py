@@ -1,3 +1,4 @@
+# Customized by jrwebb7 (2026-11).
 """src/nlp/stage02_validate.py - Validate Stage.
 
 (EDIT YOUR VERSION OF THIS FILE)
